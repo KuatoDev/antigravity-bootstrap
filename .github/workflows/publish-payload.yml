@@ -1,0 +1,24 @@
+name: Publish payload release
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ["payload/**"]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Assemble payload and verify checksum
+        run: |
+          cat payload/bootstrap-aarch64.zip.part* > bootstrap-aarch64.zip
+          echo "6a740663ffaca4e63cb5e485c08b150828ef07fd6325f1f2146414a2d256855c  bootstrap-aarch64.zip" | sha256sum -c -
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload core-v1 bootstrap-aarch64.zip --clobber
